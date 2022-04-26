@@ -133,7 +133,7 @@ sweet.best = desmats[,3,which(eff.val == max(eff.val))]
 sweet.best <- sweet.best[!is.na(sweet.best)]
 
 plot(water.best, type = 'l', lwd = 2, col = 'red', xlab = "TR", 
-     ylab = '', ylim = c(min(c(water.best, sweet.best)), 1.3),
+     ylab = '', ylim = c(min(c(water.best, sweet.best)), max(c(water.best, sweet.best))),
      main = "Highest Efficiency")
 lines(sweet.best, lwd = 2, col = 'cyan')
 

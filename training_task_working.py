@@ -1,5 +1,5 @@
 # taste task. 4/25/2022
-# New task
+# New task updated for python 3
 # water is pump 0
 # milkshake aka sweet is pump 1
 # rinse is pump 2
@@ -10,6 +10,10 @@
 # the log file also has onsets, but it has the time from when the .py file was initalized more accurate should be used for analysis
 '''
 This expects to be in the Documents folder. It also expects a folder in the Documents folder called "Train_Output". If you want to change these you need to change the paths
+Slight difference from previous versions
+- I have added the 8 second (or however many) initial wait into the onsets, so the first onset is at 8sec NOT 0sec
+- No rinse after mls_H2O
+
 milkshake: a milkshake-paired cue (2 sec), followed by a blank screen, and
 the paired milkshake will then be delivered (4 sec; 3mL).
 followed by a waiting period (2 secs) (blank),
@@ -37,11 +41,10 @@ import os
 monSize = [800, 600]
 info = {}
 info['fullscr'] = False
+info['test?'] = False
 info['port'] = '/dev/tty.usbserial'
 info['participant'] = 'test'
 info['run']='run01'
-#info['session']='pre'
-#info['flavor']='' #Either CO or SL
 info['computer']=(os.getcwd()).split('/')[2]
 dlg = gui.DlgFromDict(info)
 if not dlg.OK:
@@ -67,31 +70,24 @@ subdata['SS']={}
 subdata['broke_on_trial']={}
 subdata['simulated_response']=False
 #
-subdata['onset'] = os.path.join('Users','%s'%info['computer'],'/Documents/bevbit_task/onset_files/train/onsets_%s'%info['run'])
-subdata['jitter'] = os.path.join('Users','%s'%info['computer'],'/Documents/bevbit_task/onset_files/train/jitter_%s'%info['run'])
-subdata['conds'] = os.path.join('Users','%s'%info['computer'],'/Documents/bevbit_task/onset_files/train/conds_%s'%info['run'])
+subdata['onset'] = os.path.join('/Users/%s/Documents/Bev_Task_reup/onset_files/train/onsets_%s'%(info['computer'],info['run']))
+subdata['jitter'] = os.path.join('/Users/%s/Documents/Bev_Task_reup/onset_files/train/jitter_%s'%(info['computer'],info['run']))
+subdata['conds'] = os.path.join('/Users/%s/Documents/Bev_Task_reup/onset_files/train/conds_%s'%(info['computer'],info['run']))
 
-
+#/Users/gracer/Documents
 subdata['quit_key']='q'
 
 #######################################
-dataFileName = os.path.join('Users','%s'%info['computer'],'/Documents/Train_Output/%s_%s_%s_%s_subdata.log'%(info['participant'],info['run'],info['session'],subdata['datestamp']))
+dataFileName = os.path.join('/Users/%s/Documents/Train_Output/%s_%s_%s_subdata.log'%(info['computer'],info['participant'],info['run'],subdata['datestamp']))
+
+if os.path.exists(dataFileName) == False:
+    print('no path do you have an output directory named Train_Output in the documents folder?')
+    print(dataFileName)
+
 logging.console.setLevel(logging.INFO)
 logfile=logging.LogFile(dataFileName,level=logging.DATA)
 ratings_and_onsets = []
-#######################################
-# Serial connection and commands setup
-ser = serial.Serial(
-                    port=info['port'],
-                    baudrate=19200,
-                    parity=serial.PARITY_NONE,
-                    stopbits=serial.STOPBITS_ONE,
-                    bytesize=serial.EIGHTBITS
-                   )
-if not ser.isOpen():
-    ser.open()
 
-time.sleep(1)
 
 
 #global settings
@@ -113,7 +109,7 @@ rate_rinse = mls_rinse*(3600.0/rinse_time)  # mls/hour 300
 print('rate for sweet %f'%rate_sweet)
 print('rate for H2O %f'%rate_H2O)
 print('rate for rinse %f'%rate_rinse)
-#print('rate for unsweet %f'%rate_unsweet)
+
 
 pump_setup = ['0VOL ML\r', '1VOL ML\r', '2VOL ML\r']
 pump_phases=['0DIA%.2fMH\r'%diameter,'1DIA%.2fMH\r'%diameter, '2DIA%.2fMH\r'%diameter,
@@ -123,10 +119,25 @@ pump_phases=['0DIA%.2fMH\r'%diameter,'1DIA%.2fMH\r'%diameter, '2DIA%.2fMH\r'%dia
 '0RAT%iMH\r'%rate_H2O,'1RAT%iMH\r'%rate_sweet,'2RAT%iMH\r'%rate_rinse,
 '0VOL%i%s'%(mls_H2O,str), '1VOL%i%s'%(mls_sweet,str),'2VOL%i%s'%(mls_rinse,str)]
 
+#######################################
+# Serial connection and commands setup
+if info['test?'] == True:
+    print('warning the pumps are not on')
+else:
+    ser = serial.Serial(
+                    port=info['port'],
+                    baudrate=19200,
+                    parity=serial.PARITY_NONE,
+                    stopbits=serial.STOPBITS_ONE,
+                    bytesize=serial.EIGHTBITS
+                   )
+    if not ser.isOpen():
+        ser.open()
 
-for c in pump_setup:
-    ser.write(c)
-    time.sleep(.25)
+    time.sleep(1)
+    for c in pump_setup:
+        ser.write(c)
+        time.sleep(.25)
 
 
 # HELPER FUNCTIONS
@@ -148,13 +159,13 @@ def show_stim(stim, seconds):
 
 def check_for_quit(subdata,win):
     k=event.getKeys()
-    print 'checking for quit key %s'%subdata['quit_key']
-    print 'found:',k
+    print('checking for quit key %s'%subdata['quit_key'])
+    print('found:',k)
     if k.count(subdata['quit_key']) >0:# if subdata['quit_key'] is pressed...
-        print 'quit key pressed'
-        return True
+        print('quit key pressed')
+        return( True)
     else:
-        return False
+        return( False)
 
 def tastes(params):
     for c in params:
@@ -174,7 +185,10 @@ fixation_text = visual.TextStim(win, text='+', pos=(0, 0), height=2)
 
 scan_trigger_text = visual.TextStim(win, text='During this scan you are going to get tastes of water and milkshake. Please pay attention to the logos and the tastes', pos=(0, 0))
 
-tastes(pump_phases)
+if info['test?'] == True:
+    print('remember this is only a test')
+else:
+    tastes(pump_phases)
 
 
 #####################
@@ -213,7 +227,7 @@ pump[trialcond==1]=1 #sweet pump
 stim_images=['water.jpg','milk.jpg']
 
 subdata['trialdata']={}
-myfile = open(os.path.join('Users','%s'%info['computer'],'/Documents/Output/taste_reup_training_subdata_%s.csv'%datestamp.format(**info)),'wb')
+myfile = open(os.path.join('/Users/%s/Documents/Train_Output/taste_reup_training_subdata_%s.csv'%(info['computer'],datestamp.format(**info))),'wb')
 
 
 """
@@ -227,14 +241,14 @@ def run_block():
         scan_trigger_text.draw()
         win.flip()
         if 'o' in event.waitKeys():
-            logging.log(logging.DATA, "start key press")
+            logging.log("start key press", logging.DATA)
             break
         event.clearEvents()
 
     clock=core.Clock()
     t = clock.getTime()
     ratings_and_onsets.append(['fixation',t])
-    show_stim(fixation_text, runin_time)  # blank screen with fixation cross
+    show_stim(fixation_text, int(runin_time))  # blank screen with fixation cross
     t = clock.getTime()
     # clock.reset()
     ratings_and_onsets.append(['start',t])
@@ -250,7 +264,7 @@ def run_block():
 
         trialdata={}
         trialdata['onset']=onsets[trial]
-        logging.log(logging.DATA, "onset of trial =%f"%trialdata['onset'])
+        logging.log("onset of trial =%f"%trialdata['onset'], logging.DATA)
         ratings_and_onsets.append(["onset =%f"%trialdata['onset']])
         logging.flush()
 
@@ -267,7 +281,7 @@ def run_block():
             pass
         win.flip()#showing the image of the stimulus
         t = clock.getTime()
-        logging.log(logging.DATA, "image=%s"%stim_images[trialcond[trial]])
+        logging.log("image=%s"%stim_images[trialcond[trial]], logging.DATA)
         ratings_and_onsets.append(["image=%s"%stim_images[trialcond[trial]],t])
         logging.flush()
 
@@ -282,10 +296,13 @@ def run_block():
 
         t = clock.getTime()
         ratings_and_onsets.append(["injecting via pump at address %d"%pump[trial], t])
-        logging.log(logging.DATA,"injecting via pump at address %d"%pump[trial])
+        logging.log("injecting via pump at address %d"%pump[trial], logging.DATA)
         logging.flush()
-        ser.write('%dRUN\r'%pump[trial])
-        logging.log(logging.DATA,"post injecting via pump at address %d"%pump[trial])
+        if info['test?'] == True:
+            print('this would be the pump')
+        else:
+            ser.write('%dRUN\r'%pump[trial])
+        logging.log("post injecting via pump at address %d"%pump[trial], logging.DATA)
 
 
         while clock.getTime()<(trialdata['onset']+cue_time+delivery_time):
@@ -294,13 +311,15 @@ def run_block():
         message=visual.TextStim(win, text='+', pos=(0, 0), height=2)#this lasts throught the wait
         message.draw()
         win.flip()
-        logging.log(logging.DATA,"start wait")
+        logging.log("start wait", logging.DATA)
         t = clock.getTime()
         ratings_and_onsets.append(["wait", t])
         logging.flush()
-
-        trialdata['dis']=[ser.write('0DIS\r'),ser.write('1DIS\r')]
-        print(trialdata['dis'])
+        if info['test?'] == True:
+            print('testing')
+        else:
+            trialdata['dis']=[ser.write('0DIS\r'),ser.write('1DIS\r')]
+            print(trialdata['dis'])
 
 
         while clock.getTime()<(trialdata['onset']+cue_time+delivery_time+wait_time):
@@ -310,7 +329,7 @@ def run_block():
             message=visual.TextStim(win, text='+', pos=(0, 0), height=2)#lasts through the jitter
             message.draw()
             win.flip()
-            logging.log(logging.DATA, "NO RINSE")
+            logging.log("NO RINSE", logging.DATA)
             logging.flush()
 
             t = clock.getTime()
@@ -323,7 +342,7 @@ def run_block():
 
             t = clock.getTime()
             ratings_and_onsets.append(['end time', t])
-            logging.log(logging.DATA,"finished")
+            logging.log("finished", logging.DATA)
             logging.flush()
             subdata['trialdata'][trial]=trialdata
 
@@ -332,11 +351,14 @@ def run_block():
             message.draw()
             win.flip()
 
-            print 'injecting rinse via pump at address %d'%0
+            print('injecting rinse via pump at address %d'%0)
             t = clock.getTime()
             ratings_and_onsets.append(['injecting rinse via pump at address %d'%0, t])
-            ser.write('%dRUN\r'%2)
-            logging.log(logging.DATA, "RINSE")
+            if info['test?'] == True:
+                print('here this would be a rinse')
+            else:
+                ser.write('%dRUN\r'%2)
+            logging.log( "RINSE", logging.DATA)
             logging.flush()
 
             while clock.getTime()<(trialdata['onset']+cue_time+delivery_time+wait_time+rinse_time):
@@ -345,7 +367,7 @@ def run_block():
             message=visual.TextStim(win, text='+', pos=(0, 0), height=2)#lasts through the jitter
             message.draw()
             win.flip()
-            logging.log(logging.DATA,"Start Jitter")
+            logging.log("Start Jitter", logging.DATA)
             logging.flush()
             t = clock.getTime()
             ratings_and_onsets.append(["jitter", t])
@@ -357,7 +379,7 @@ def run_block():
             t = clock.getTime()
 
             ratings_and_onsets.append(['end time', t])
-            logging.log(logging.DATA,"finished")
+            logging.log("finished", logging.DATA)
             logging.flush()
             subdata['trialdata'][trial]=trialdata
 
@@ -367,7 +389,7 @@ def run_block():
 run_block()
 
 subdata.update(info)
-f=open('/Users/'+info['computer']+'/Documents/Output/taste_reup_subdata_%s.pkl'%datestamp,'wb')
+f=open('/Users/%s/Documents/Train_Output/taste_reup_subdata_%s.pkl'%(info['computer'],datestamp),'wb')
 pickle.dump(subdata,f)
 f.close()
 
