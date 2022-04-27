@@ -19,7 +19,7 @@ library(HH)
 ## ------------------------------------------------------------------------
 
 #############################
-n.loop = 50000
+n.loop = 5
 
 ###make sure these match the script
 delivery_time=4.0
@@ -44,12 +44,12 @@ iti_inital_sweet = cue_time+wait_time+rinse_time
 iti_inital_water = cue_time+wait_time
 
 iti_hard_sweet = iti_inital_sweet+max #if using a random iti, you need to include this and the onsets into the loop
-iti_hard_water = iti_inital_miss+max #if using a random iti, you need to include this and the onsets into the loop
+iti_hard_water = iti_inital_water+max #if using a random iti, you need to include this and the onsets into the loop
 
 iti_hard_comb_intm = iti_hard_sweet*all
-iti_hard_comb_intm = replace(iti_hard_comb_intm, iti_hard_comb_intm==0, iti_hard_miss)
+iti_hard_comb_intm = replace(iti_hard_comb_intm, iti_hard_comb_intm==0, iti_hard_water)
 
-mockons.all = cumsum(c(0,dur+iti_hard_comb_intm))
+mockons.all = cumsum(c(runin_time,dur+iti_hard_comb_intm))
 
 mockons.all = mockons.all[1:(ntrials.total)]
 
@@ -78,8 +78,8 @@ for (i in 1:n.loop){
   iti_hard_comb_intm = iti_inital_sweet*trial.type
   iti_hard_comb_intm = replace(iti_hard_comb_intm, iti_hard_comb_intm==0, iti_inital_water)
   
-  ons.all = cumsum(c(0,dur+iti_hard_comb_intm))
-  ons.all = ons.all[1:(ntrials.total)]
+  #ons.all = cumsum(c(0,dur+iti_hard_comb_intm))
+  #ons.all = ons.all[1:(ntrials.total)]
   
   
   
@@ -93,8 +93,9 @@ for (i in 1:n.loop){
     vr[j] <- iti_hard_comb_intm[j]+jit[j] # adding it to my non-random interval and then vector
   }
   
-  ons.all = cumsum(c(0,vr))
-  ons.all = ons.all[1:(ntrials.total)]
+  ons.all = cumsum(c(0,vr+dur))
+  ons.all = ons.all[1:(ntrials.total)]+runin_time
+  
   
   
   
@@ -161,6 +162,6 @@ fake.data = rnorm(length(water))
 mod.fake = lm(fake.data ~ water.best + sweet.best)
 vif(mod.fake)
 
-write.table(ons.save[,,best][,1], "/Users/gracer/Documents/Bev_Task_reup/onset_files/train/onsets_run01", row.names = F,col.names = F, sep="\t")
-write.table(ons.save[,,best][,2], "/Users/gracer/Documents/Bev_Task_reup/onset_files/train/jitter_run01", row.names = F, col.names = F, sep="\t")
-write.table(ons.save[,,best][,3], "/Users/gracer/Documents/Bev_Task_reup/onset_files/train/conds_run01", row.names = F, col.names = F, sep="\t")
+write.table(ons.save[,,best][,1], "/Users/gracer/Documents/Bev_Task_reup/onset_files/train/onsets_run02", row.names = F,col.names = F, sep="\t")
+write.table(ons.save[,,best][,2], "/Users/gracer/Documents/Bev_Task_reup/onset_files/train/jitter_run02", row.names = F, col.names = F, sep="\t")
+write.table(ons.save[,,best][,3], "/Users/gracer/Documents/Bev_Task_reup/onset_files/train/conds_run02", row.names = F, col.names = F, sep="\t")
