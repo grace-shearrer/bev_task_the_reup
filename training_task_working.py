@@ -248,6 +248,7 @@ def run_block():
     clock=core.Clock()
     t = clock.getTime()
     ratings_and_onsets.append(['fixation',t])
+
     show_stim(fixation_text, int(runin_time))  # blank screen with fixation cross
     t = clock.getTime()
     # clock.reset()
@@ -353,7 +354,7 @@ def run_block():
 
             print('injecting rinse via pump at address %d'%0)
             t = clock.getTime()
-            ratings_and_onsets.append(['injecting rinse via pump at address %d'%0, t])
+            ratings_and_onsets.append(['injecting rinse via pump at address %d'%2, t])
             if info['test?'] == True:
                 print('here this would be a rinse')
             else:
