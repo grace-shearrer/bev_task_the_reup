@@ -26,6 +26,7 @@ delivery_time=4.0
 cue_time=2.0
 wait_time=2.0
 rinse_time=2.0
+runin_time = 8.0 
 
 tot_iti=cue_time+wait_time+rinse_time
 # Things that don't change
@@ -81,11 +82,6 @@ for (i in 1:n.loop){
   iti_hard_comb_intm = iti_inital_sweet*trial.type
   iti_hard_comb_intm = replace(iti_hard_comb_intm, iti_hard_comb_intm==0, iti_inital_miss)
   
-  ons.all = cumsum(c(0,dur+iti_hard_comb_intm))
-  
-  ons.all = ons.all[1:(ntrials.total)]
-  
-  
     
   iti.uni = runif(1000, min, max) #randomly generate 1000 numbers between 1 and 9, mean is 5 this is the jitter
   #iti_sweet = rep(iti_hard_comb_intm, length(sweet)) #iti that is not random, wait, cue, ect
@@ -98,8 +94,8 @@ for (i in 1:n.loop){
     vr[j] <- iti_hard_comb_intm[j]+jit[j] # adding it to my non-random interval and then vector
   }
   
-  ons.all = cumsum(c(0,vr))
-  ons.all = ons.all[1:(ntrials.total)]
+  ons.all = cumsum(c(0,vr+dur))
+  ons.all = ons.all[1:(ntrials.total)]+runin_time
   
   
   
@@ -163,6 +159,6 @@ fake.data = rnorm(length(miss))
 mod.fake = lm(fake.data ~ miss.best + sweet.best)
 vif(mod.fake)
 
-write.table(ons.save[,,best][,1], "/Users/gracer/Documents/Bev_Task_reup/onset_files/PE/onsets_run01", row.names = F,col.names = F, sep="\t")
-write.table(ons.save[,,best][,2], "/Users/gracer/Documents/Bev_Task_reup/onset_files/PE/jitter_run01", row.names = F, col.names = F, sep="\t")
-write.table(ons.save[,,best][,3], "/Users/gracer/Documents/Bev_Task_reup/onset_files/PE/conds_run01", row.names = F, col.names = F, sep="\t")
+write.table(ons.save[,,best][,1], "/Users/gracer/Documents/Bev_Task_reup/onset_files/PE/onsets_run02", row.names = F,col.names = F, sep="\t")
+write.table(ons.save[,,best][,2], "/Users/gracer/Documents/Bev_Task_reup/onset_files/PE/jitter_run02", row.names = F, col.names = F, sep="\t")
+write.table(ons.save[,,best][,3], "/Users/gracer/Documents/Bev_Task_reup/onset_files/PE/conds_run02", row.names = F, col.names = F, sep="\t")

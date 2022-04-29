@@ -31,17 +31,17 @@ def get_info_from_dialog(dictionary,title,fixed=[]):
     """
     infoDlg = gui.DlgFromDict(dictionary, title=title, fixed=fixed)
     if gui.OK:#then the user pressed OK
-        print info
-        return info
-    else: 
-        print 'User Cancelled'
-        return []
+        print(info)
+        return(info)
+    else:
+        print('User Cancelled')
+        return( [])
 
 def shut_down_cleanly(subdata,win):
     """
     shut down experiment and try to save data
     """
-    
+
     win.close()
     logging.flush()
     try:
@@ -52,7 +52,7 @@ def shut_down_cleanly(subdata,win):
         pass
 #    if subdata['completed']==0:
 #        sys.exit()
-    
+
 def md5Checksum(filePath):
     """ get an MD5 checksum for a file
     """
@@ -73,11 +73,11 @@ def get_lists_from_directory(dir):
         files_list=os.listdir(dir)
         files=[os.path.join(dir,f) for f in files_list]
     else:
-        print '%s directory does not exist - exiting'%dir
+        print('%s directory does not exist - exiting'%dir)
         sys.exit()
-    
+
     if files==[]:
-        print '%s directory is empty'%dir
+        print('%s directory is empty'%dir)
         #sys.exit()
         return []
     return files
